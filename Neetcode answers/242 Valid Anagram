@@ -1,0 +1,24 @@
+class Solution:
+    def isAnagram(self, s: str, t: str) -> bool:
+
+        if len(s) != len(t):
+            return False
+        
+        var_dict1, var_dict2 = {}, {}
+        
+        for char in s:  # inputs each char into the dictionary
+            if char in var_dict1:
+                var_dict1[char] += 1
+            else:
+                var_dict1[char] = 1
+        
+        for chars in t:
+            if chars in var_dict2:
+                var_dict2[chars] += 1
+            else:
+                var_dict2[chars] = 1
+        
+        if var_dict1 == var_dict2:
+            return True
+        
+        return False
