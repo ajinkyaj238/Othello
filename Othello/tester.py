@@ -1,6 +1,11 @@
-game_hashmap = {0: [1,2,3,4,10], 1: [2,3,4,5,123]}
-matrix = [row for row in game_hashmap.values()]
-print(matrix)
-for i in range(len(matrix)):
-    for j in matrix[i]:
-        print(j)
+a_dict = {'color': ['1','2','3','4','5'], 'fruit': [6,7,8,9,10], 'pet': 'dog'}
+
+for key in a_dict.keys():
+    if '2' in a_dict[key]:
+        arb_lst = a_dict[key]
+        for col in range(len(arb_lst)):
+            if arb_lst[col] == '2':
+                arb_lst[col] = '100'
+        a_dict[key] = arb_lst
+
+print(a_dict)
