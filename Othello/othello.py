@@ -1,9 +1,9 @@
 """
 Ajinkya Joshi
 Othello in python
+Functional script non-OOP
 """
 
-# constant functions
 def constant_chars(calledint):
     if calledint == 1:
         return '-'
@@ -43,6 +43,20 @@ def printer(game_hashmap):
             printer_job += constant_chars(5)  # is a space '  '
         printer_job += constant_chars(4)
     return printer_job
+
+# to find if the index exits
+def index_exists(matrix, row, col):
+    try:
+        matrix[row][col]
+        return True
+    except IndexError:
+        return False
+def single_index_exist(lst, ind):
+    try:
+        lst[ind]
+        return True
+    except IndexError:
+        return False
 
 def starting_board(func_rowcol):
     """prints the starting board"""
@@ -87,21 +101,7 @@ def omove(dx, dy, game_hashmap):
     dx_lst_change = game_hashmap[dy]
     dx_lst_change[dx] = constant_chars(3)
     game_hashmap[dy] = dx_lst_change
-    return printer(game_hashmap), game_hashmap           
-
-# to find if the index exits
-def index_exists(matrix, row, col):
-    try:
-        matrix[row][col]
-        return True
-    except IndexError:
-        return False
-def single_index_exist(lst, ind):
-    try:
-        lst[ind]
-        return True
-    except IndexError:
-        return False
+    return possible_move_remover(game_hashmap)        
 
 # to find possible moves. 
 def recursive_position_finder(i, row, char_to_find, char_against):
@@ -111,6 +111,8 @@ def recursive_position_finder(i, row, char_to_find, char_against):
     elif j is True and row[i] == char_against:  # if a rival element is present, recursively search to find the next index
         return recursive_position_finder(i+1, row, char_to_find, char_against)
     elif j is True and row[i] == constant_chars(6):  # if ? is present
+        return False
+    elif j is True and row[i] == char_to_find: # eliminates senario where chartofind is X and board is XOX
         return False
     elif j is False:  # if the index does not exist
         return False
@@ -182,7 +184,7 @@ def move_finder(game_hashmap, char_for, char_against):
                  
                 # checking and placing upwards of the piece
                 up = row + 1
-                if index_exists(game_matrix, up, col) is True and game_matrix[up][left] == char_against:
+                if index_exists(game_matrix, up, col) is True and game_matrix[up][col] == char_against:
                     column_lst = [game_matrix[col_extraction][col] for col_extraction in range(len(game_matrix))]
                     column_lst = row_finder(column_lst, char_for, char_against)
                     for column_lst_col in range(len(game_matrix)):
@@ -248,12 +250,166 @@ def validity_checker(game_hashmap, dy, dx, rowcol):
         
         else:
             return 0
-
 def does_move_exist(game_hashmap):
     for row in game_hashmap.keys():
         if constant_chars(6) in game_hashmap[row]:
             return True
     return False
+
+def row_mover(row, char_for, char_against, start_index):
+    for index in range(len(row), start_index + 1):
+        if row[index]  == char_for:
+            end_index = index
+        elif row[index] == char_against:
+            continue
+        elif row[index] == constant_chars(1):
+            return False, row
+
+    for index in range(end_index, start_index):
+        row[index] == char_for
+
+    return True, row
+def move(game_hashmap, row, col, char_for, char_against):
+    game_matrix = [row for row in game_hashmap.values()]
+
+    # checking and placing rightwards of the piece
+    right = col + 1
+    left = col - 1
+    up = row + 1
+    down = row - 1
+
+    # row straight direction: 1
+    if index_exists(game_matrix, row, right) is True and game_matrix[row][right] == char_against:
+        
+        move_valid, game_matrix[row] = row_mover(game_matrix[row], char_for, char_against, col)
+        if move_valid is True:
+            for i in range(len(game_matrix)):
+                game_hashmap[i] = game_matrix[i]
+            return game_hashmap
+    
+    # row reversed direction: 2
+    if index_exists(game_matrix, row, left) is True and game_matrix[row][left] == char_against:
+        
+        changed_row = game_matrix[row]
+        changed_row.reverse()
+        move_valid, changed_row = row_mover(changed_row, char_for, char_against, col)
+        
+        if move_valid is True:
+            changed_row.reverse()
+            game_matrix[row] = changed_row
+            for i in range(len(game_matrix)):
+                game_hashmap[i] = game_matrix[i]
+            return game_hashmap
+
+    # column straight direction: 3
+    if index_exists(game_matrix, up, col) is True and game_matrix[up][col] == char_against:
+        
+        column_lst = [game_matrix[col_extraction][col] for col_extraction in range(len(game_matrix))]
+        move_valid, column_lst = row_mover(column_lst, char_for, char_against, row)
+        if move_valid is True:
+            for column_lst_col in range(len(game_matrix)):
+                game_matrix[column_lst_col][col] = column_lst[column_lst_col]
+            for i in range(len(game_matrix)):
+                game_hashmap[i] = game_matrix[i]
+            return game_hashmap
+    
+    # column reversed direction: 4
+    if index_exists(game_matrix, down, col) is True and game_matrix[down][col] == char_against:
+        
+        column_lst = [game_matrix[col_extraction][col] for col_extraction in range(len(game_matrix))]
+        column_lst.reverse()
+        move_valid, column_lst = row_mover(column_lst, char_for, char_against, row)
+        if move_valid is True:
+            column_lst.reverse()
+            for column_lst_col in range(len(game_matrix)):
+                game_matrix[column_lst_col][col] = column_lst[column_lst_col]
+            for i in range(len(game_matrix)):
+                game_hashmap[i] = game_matrix[i]
+            return game_hashmap
+
+    #diagonally upwards straight direction: 5
+    if index_exists(game_matrix, up, left) is True and game_matrix[up][left] == char_against:
+        
+        if row == col:
+            arb_row, arb_col = 0, 0
+        elif row > col:
+            arb_row = row - col
+            arb_col = col
+        elif row < col: 
+            arb_col = col - row
+            arb_row = row
+        
+        diag_row = diag_getter(game_matrix, arb_row, arb_col)
+        move_valid, diag_row = row_mover(diag_row, char_for, char_against, col)  # I belive both row and col would work
+        if move_valid is True:
+            game_matrix = diag_putter(game_matrix, diag_row, arb_row, arb_col)
+            for i in range(len(game_matrix)):
+                game_hashmap[i] = game_matrix[i]
+            
+            return game_hashmap
+
+    # diagonally upwards reversed direction: 6 
+    if index_exists(game_matrix, down, right) is True and game_matrix[down][right] == char_against:
+        if row == col:
+            arb_row, arb_col = 0, 0
+        elif row > col:
+            arb_row = row - col
+            arb_col = col
+        elif row < col: 
+            arb_col = col - row
+            arb_row = row
+
+        diag_row = diag_getter(game_matrix, arb_row, arb_col)
+        diag_row.reverse()
+        diag_row = row_mover(diag_row, char_for, char_against, col)
+        if move_valid is True:
+            diag_row.reverse()
+            game_matrix = diag_putter(game_matrix, diag_row, arb_row, arb_col)
+            for i in range(len(game_matrix)):
+                game_hashmap[i] = game_matrix[i]
+            
+            return game_hashmap
+    
+    # diagonally upwards straight direction: 7
+    if index_exists(game_matrix, up, right) is True and game_matrix[up][right] == char_against:
+        
+        if (row + col) == len(game_matrix):
+            arb_row, arb_col = len(game_matrix), 0
+        elif (row + col) > 7:
+            arb_row, arb_col = len(game_matrix), (col - (len(game_matrix) - row))
+        elif (row + col) < 7:
+            arb_row, arb_col = (row + col), 0
+        
+        diag_row = diag2_getter(game_matrix, arb_row, arb_col)
+        move_valid, diag_row = row_mover(diag_row, char_for, char_against, col)  # I belive both row and col would work
+        if move_valid is True:
+            game_matrix = diag2_putter(game_matrix, diag_row, arb_row, arb_col)
+            for i in range(len(game_matrix)):
+                game_hashmap[i] = game_matrix[i]
+            
+            return game_hashmap
+
+    # diagonally upwards reversed direction: 8
+    if index_exists(game_matrix, down, left) is True and game_matrix[down][left] == char_against:
+        
+        if (row + col) == len(game_matrix):
+            arb_row, arb_col = len(game_matrix), 0
+        elif (row + col) > 7:
+            arb_row, arb_col = len(game_matrix), (col - (len(game_matrix) - row))
+        elif (row + col) < 7:
+            arb_row, arb_col = (row + col), 0
+
+        diag_row = diag2_getter(game_matrix, arb_row, arb_col)
+        diag_row.reverse()
+        move_valid, diag_row = row_mover(diag_row, char_for, char_against, col)
+        if move_valid is True:
+            diag_row.reverse()
+            game_matrix = diag2_putter(game_matrix, diag_row, arb_row, arb_col)
+            for i in range(len(game_matrix)):
+                game_hashmap[i] = game_matrix[i]
+            
+            return game_hashmap
+
 
 """game initialization"""
 rowcol = int(input('What grid would you like your game to be: '))
@@ -279,6 +435,7 @@ while gameend == False:
             if moveX_validity == 0:
                 print('Invalid move')    
         game_hashmap = xmove(dxmove_X, dymove_X, game_hashmap)
+        game_hashmap = move(game_hashmap, dymove_X, dxmove_X, constant_chars(2), constant_chars(3))
     elif dmeX is False:
         print('No moves can be made')
     
