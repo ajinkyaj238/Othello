@@ -1,7 +1,7 @@
 """
 Ajinkya Joshi
 Othello in python
-Functional script non-OOP
+Functional Python script non-OOP
 """
 
 def constant_chars(calledint):
